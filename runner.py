@@ -19,6 +19,22 @@ preprocess_inputs = [{
     'test_size' : .2,
     'scaler' : 'standard',
     'name' : 'standard96'
+},
+{
+    'chop' : 1,
+    'lookback' : 192,
+    'forecast' : 96,
+    'test_size' : .2,
+    'scaler' : 'minmax',
+    'name' : 'minmax192'
+},
+{
+    'chop' : 1,
+    'lookback' : 192,
+    'forecast' : 96,
+    'test_size' : .2,
+    'scaler' : 'standard',
+    'name' : 'standard192'
 }]
 
 model_inputs = [
