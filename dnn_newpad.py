@@ -30,8 +30,8 @@ df = pd.read_pickle('Data_Clean/merged_clean_df.pkl')
 ###########
 
 # set to >1 to chop off 1/n of the data
-chop = 1
-lookback = 96
+chop = 2
+lookback = 192
 forecast = 8
 epochs = 3
 test_size = 0.2
@@ -49,10 +49,8 @@ params = {'lookback': lookback, 'forecast': forecast, 'chop': chop, 'epochs': ep
 df = df.iloc[-int(len(df)/chop):]
 sequence_length = lookback + forecast
 
-# Lag all variables that are what we're trying to predict in the forecast period by the forecast period
+# REMOVED = Lag all variables that are what we're trying to predict in the forecast period by the forecast period
 df['diffsign'] = np.where(df['RTM'].values - df['DAM'].values > 0, 1, 0)
-df['RTMlag'] = df['diffsign'].shift(forecast)
-df['load_diff'] = df['load_diff'].shift(forecast)
 df.dropna(inplace=True)
 X_vars = list(df.columns)
 X_vars.remove('RTM')
@@ -61,7 +59,7 @@ X_vars
 
 # %%
 
-X_continuous = df[['DAM', 'RTMlag', 'load_fc', 'load_diff']].values
+X_continuous = df[['diffsign', 'DAM',  'load_fc', 'load_diff']].values
 # Categorical features
 enc = OneHotEncoder(handle_unknown='ignore')
 X_categorical = df[['Day', 'Month', 'Year', 'Hour', 'Minute']]
@@ -71,10 +69,10 @@ X_categorical = enc.fit_transform(X_categorical).toarray()
 print(df.shape)
 print(X_continuous.shape)
 print(X_categorical.shape)
-print(df['RTM'].shape)
-
+\
 # %%
 import gc
+from keras.layers import Embedding
 gc.collect()
 
 # %%
@@ -123,20 +121,12 @@ def pickle_ins(X_train, X_test, y_train, y_test, Xscaler):
     dill.dump(y_train, open('y_train.pkl', 'wb'))
     dill.dump(y_test, open('y_test.pkl', 'wb'))
 
-pickle_ins(X_train, X_test, y_train, y_test, Xscaler)
+#pickle_ins(X_train, X_test, y_train, y_test, Xscaler)
 
 print(y_train[:35])
 # Define the model
 
-# Create Timeseries Generators
-train_generator = TimeseriesGenerator(X_train, y_train, length=forecast, batch_size=32)
-test_generator = TimeseriesGenerator(X_test, y_test, length=forecast, batch_size=32)
-
-print(train_generator[0][0].shape)
-print(train_generator[0][1].shape)
-print(train_generator[0])
-
-def rev_encode_data(X, y, lookback = lookback, forecast=forecast):
+def revrev_encode_data(X, y, lookback = lookback, forecast=forecast):
     """
     Encode the data for training an LSTM model, including creating sequences and splitting into input and target.
 
@@ -159,9 +149,10 @@ def rev_encode_data(X, y, lookback = lookback, forecast=forecast):
     y_seq = []
 
     for i in range(len(X) - l - f + 1):
-        Xtemp = X[i:i+l+f]
+        part1 = X[i:i+l+f,0:]
+        part2 = np.reshape(np.concatenate((X[i:i+l,0],np.zeros(f)), axis = 0),(-1,1))
         ytemp = y[i+l:i+l+f]
-        X_seq.append(Xtemp)
+        X_seq.append(np.concatenate((part1, part2), axis=1))
         y_seq.append(ytemp)
         # if i % 500 == 0:
         #     print(i)
@@ -170,33 +161,34 @@ def rev_encode_data(X, y, lookback = lookback, forecast=forecast):
 
 
     # Encode the train and test data
-X_train_encoded, y_train_encoded = rev_encode_data(X_train, y_train, lookback=lookback, forecast=forecast)
-X_test_encoded, y_test_encoded = rev_encode_data(X_test, y_test, lookback=lookback, forecast=forecast)
-# print('X_train_encoded shape:', X_train_encoded.shape)
-# print('y_train_encoded shape:', y_train_encoded.shape)
-# print('X_test_encoded shape:', X_test_encoded.shape)
-# print('y_test_encoded shape:', y_test_encoded.shape)
-# import gc
-# gc.collect()
+X_train_encoded, y_train_encoded = revrev_encode_data(X_train, y_train, lookback=lookback, forecast=forecast)
+X_test_encoded, y_test_encoded = revrev_encode_data(X_test, y_test, lookback=lookback, forecast=forecast)
+print('X_train_encoded shape:', X_train_encoded.shape)
+print('y_train_encoded shape:', y_train_encoded.shape)
+print('X_test_encoded shape:', X_test_encoded.shape)
+print('y_test_encoded shape:', y_test_encoded.shape)
+import gc
+gc.collect()
 
+# Transform X_test_encoded sequences into embedding objects
+# X_train_embedded = Embedding(input_dim=X_train_encoded.shape[1], output_dim=32)(X_train_encoded)
+# X_test_embedded = Embedding(input_dim=X_train_encoded.shape[1], output_dim=32)(X_test_encoded)
 
 # Define the model
 model = Sequential()
-model.add(LSTM(256, input_shape=(lookback, X_train.shape[1]), activation='tanh', kernel_regularizer=l2(0.0001), return_sequences=True))
+model.add(LSTM(128, input_shape=(lookback+forecast, X_train_encoded.shape[2]), activation='tanh', kernel_regularizer=l2(0.0001), return_sequences=True))
 model.add(Dropout(0.1))
-model.add(LSTM(256, activation='tanh', kernel_regularizer=l2(0.0001), return_sequences=True))
+model.add(LSTM(32, activation='tanh', kernel_regularizer=l2(0.0001), return_sequences=True))
 model.add(Dropout(0.1))
-model.add(LSTM(128, activation='tanh', kernel_regularizer=l2(0.0001), return_sequences=True))
+model.add(LSTM(32, activation='tanh', kernel_regularizer=l2(0.0001), return_sequences=False))
 model.add(Dropout(0.1))
-model.add(LSTM(128, activation='tanh', kernel_regularizer=l2(0.0001), return_sequences=False))
-model.add(Dropout(0.1))
-model.add(Dense(1, activation='sigmoid'))
+model.add(Dense(8, activation='sigmoid'))
 
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
 
 # Fit the model
-history = model.fit(train_generator, epochs=epochs, validation_data=test_generator)
+history = model.fit(X_train_encoded,y_train_encoded, epochs=epochs, validation_data=(X_test_encoded, y_test_encoded))
 
 
 # Evaluate the model
