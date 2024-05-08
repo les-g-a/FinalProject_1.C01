@@ -165,9 +165,43 @@ def preprocess(chop, lookback, forecast, test_size, scaler, name = None):
         return np.array(X_seq), np.array(y_seq)
 
 
+    
+
+    def revrev_encode_data(X, y, lookback = lookback, forecast=forecast):
+        """
+        Encode the data for training an LSTM model, including creating sequences and splitting into input and target.
+
+        Parameters:
+        X (numpy.ndarray): The input data array.
+        y (numpy.ndarray): The target variable array.
+        lookback (int): The number of timesteps to look back (48 hours with 15 minute intervals).
+        forecast (int): The number of timesteps to forecast (24 hours with 15 minute intervals).
+
+        Returns:
+        X_seq (numpy.ndarray): The encoded input data with sequences.
+        y_seq (numpy.ndarray): The encoded target variable array with sequences.
+        """
+
+        if len(X) != len(y):
+            raise ValueError("X and y must have the same length.")
+        l = lookback
+        f = forecast
+        X_seq = []
+        y_seq = []
+
+        for i in range(len(X) - l - f + 1):
+            part1 = X[i:i+l+f,0:]
+            part2 = np.reshape(np.concatenate((X[i:i+l,0],np.zeros(f)), axis = 0),(-1,1))
+            ytemp = y[i+l:i+l+f]
+            X_seq.append(np.concatenate((part1, part2), axis=1))
+            y_seq.append(ytemp)
+            # if i % 500 == 0:
+            #     print(i)
+
+        return np.array(X_seq), np.array(y_seq)
     # Encode the train and test data
-    X_train_encoded, y_train_encoded = rev_encode_data(X_train, y_train, lookback=lookback, forecast=forecast)
-    X_test_encoded, y_test_encoded = rev_encode_data(X_test, y_test, lookback=lookback, forecast=forecast)
+    X_train_encoded, y_train_encoded = revrev_encode_data(X_train, y_train, lookback=lookback, forecast=forecast)
+    X_test_encoded, y_test_encoded = revrev_encode_data(X_test, y_test, lookback=lookback, forecast=forecast)
     print('X_train_encoded shape:', X_train_encoded.shape)
     print('y_train_encoded shape:', y_train_encoded.shape)
     print('X_test_encoded shape:', X_test_encoded.shape)

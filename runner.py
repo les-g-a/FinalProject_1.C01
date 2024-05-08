@@ -4,50 +4,22 @@ from lstmmodel import *
 import datetime
 import pickle
 
-preprocess_inputs = [{
-    'chop' : 1,
-    'lookback' : 96,
-    'forecast' : 96,
-    'test_size' : .2,
-    'scaler' : 'minmax',
-    'name' : 'minmax96'
-},
+preprocess_inputs = [
 {
     'chop' : 1,
     'lookback' : 96,
     'forecast' : 96,
     'test_size' : .2,
     'scaler' : 'standard',
-    'name' : 'standard96'
-},
-{
-    'chop' : 1,
-    'lookback' : 192,
-    'forecast' : 96,
-    'test_size' : .2,
-    'scaler' : 'minmax',
-    'name' : 'minmax192'
-},
-{
-    'chop' : 1,
-    'lookback' : 192,
-    'forecast' : 96,
-    'test_size' : .2,
-    'scaler' : 'standard',
-    'name' : 'standard192'
-}]
+    'name' : 'standard96newencode'
+}
+]
 
 model_inputs = [
     {
-        'epochs' : 10,
-        'regularizer' : .0001,
-        'run_name' : 'lowl2',
-        'dropout' : .2
-    },
-    {
-        'epochs' : 10,
-        'regularizer' : .001,
-        'run_name' : 'highl2',
+        'epochs' : 6,
+        'regularizer' : 0,
+        'run_name' : 'noreg_newencodingtest',
         'dropout' : 0
     }
 ]
