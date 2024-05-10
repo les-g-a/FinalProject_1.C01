@@ -281,7 +281,7 @@ def run_model(X_train_encoded, y_train_encoded, X_test_encoded, y_test_encoded, 
     BiLSTM_3layers.add(Dropout(dropout))
     BiLSTM_3layers.add(Bidirectional(LSTM(32, return_sequences=True, activation='tanh', kernel_regularizer=l2(regularizer))))
     BiLSTM_3layers.add(Dropout(dropout))
-    BiLSTM_3layers.add(Bidirectional(LSTM(10, return_sequences=False, activation='tanh', kernel_regularizer=l2(regularizer))))
+    BiLSTM_3layers.add(Bidirectional(LSTM(32, return_sequences=False, activation='tanh', kernel_regularizer=l2(regularizer))))
     BiLSTM_3layers.add(Dense(1))
     BiLSTM_3layers.compile(optimizer='adam', loss='mse', metrics=["mean_absolute_error"])
     # Train model on CPU

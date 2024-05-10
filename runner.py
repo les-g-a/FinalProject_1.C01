@@ -17,9 +17,27 @@ preprocess_inputs = [
 
 model_inputs = [
     {
-        'epochs' : 6,
+        'epochs' : 20,
         'regularizer' : 0,
-        'run_name' : 'noreg_newencodingtest',
+        'run_name' : 'noreg005drop_newencodingtest',
+        'dropout' : 0.05
+    },
+    {
+        'epochs' : 20,
+        'regularizer' : 0.00001,
+        'run_name' : '105reg005 drop_newencodingtest',
+        'dropout' : 0.05
+    },
+    {
+        'epochs' : 20,
+        'regularizer' : 0.0001,
+        'run_name' : '105reg005 drop_newencodingtest',
+        'dropout' : 0
+    },
+        {
+        'epochs' : 20,
+        'regularizer' : 0.00001,
+        'run_name' : '105reg005 drop_newencodingtest',
         'dropout' : 0
     }
 ]
