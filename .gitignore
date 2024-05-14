@@ -1,2 +1,4 @@
 *.pkl
+*.keras
+*.csv
 __pycache__/

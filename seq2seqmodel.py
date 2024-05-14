@@ -52,7 +52,7 @@ X_train, X_test, y_train, y_test = train_test_split(X_sequences, y_sequences, te
 
 # output_seq_length: This is similar but for the output. For some sequence-to-sequence models, this might be the same as the input sequence length, or it might be different, such as when predicting future values or translating sentences to another language with different sentence lengths.
 
-%%
+
 X, y = encode_data()
 
 input_seq_length = 48 * 4  # 48 hours with 15-minute intervals
@@ -66,10 +66,10 @@ X_train, X_test, y_train, y_test = train_test_split(X_sequences, y_sequences, te
 
 X_train.shape[2]
 
-%%
+
 print(X_train.shape, X_test.shape, y_train.shape, y_test.shape)
 
-%%
+
 df_trimmed = trim_data(df)
 X, y, months = encode_data(df=df_trimmed)
 # Use the function to trim the data

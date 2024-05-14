@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from keras.models import Sequential
+#from keras.models import Sexquential
 from keras.layers import Bidirectional, LSTM, Dropout, Dense
 from keras.optimizers import Adam
 from sklearn.preprocessing import MinMaxScaler
@@ -98,5 +98,7 @@ df['houston_load'] = df['houston_load'].fillna(0)
 df = df[['Settlement Point Price_DAM', 'Settlement Point Price_RTM', 'houston_load', 'houston_diff', 'Day', 'Month', 'Year', 'Hour', 'Minute']]
 
 df.rename(columns={'Settlement Point Price_DAM': 'DAM', 'Settlement Point Price_RTM': 'RTM', 'houston_load' : 'load_fc', 'houston_diff' : 'load_diff'}, inplace=True)
+
+df = df[df['load_fc']!= 0] # remove rows with no load forecast
 
 df.to_pickle('Data_Clean/merged_clean_df.pkl')
