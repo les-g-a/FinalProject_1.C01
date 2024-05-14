@@ -389,7 +389,7 @@ def run_model(X_train_encoded, y_train_encoded, X_val_encoded, y_val_encoded, ep
     history = BiLSTM_3layers.fit(X_train_encoded,y_train_encoded, batch_size=batch_size, epochs=epochs, validation_data=(X_val_encoded, y_val_encoded), verbose=2)
 
     # Save model
-    BiLSTM_3layers.save('Model_Outputs/model_BiLSTM_3layers_'+str(dt.datetime.now().date)+run_name+'.keras')
+    BiLSTM_3layers.save('Model_Outputs/model_BiLSTM_3layers_'+str(dt.datetime.now().date())+run_name+'.keras')
     return history, BiLSTM_3layers
 
 
