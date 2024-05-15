@@ -2,7 +2,7 @@
 import numpy as np
 import pandas as pd
 from keras.models import Sequential
-from keras.layers import Bidirectional, LSTM, Dropout, Dense
+from keras.layers import Bidirectional, LSTM, Dropout, Dense, TimeDistributed
 from keras.optimizers import Adam
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
@@ -79,7 +79,7 @@ def preprocess(chop, lookback, forecast, scaler, n_splits=3, train_start=0, trai
     #### We are splitting the data into test/train before we create the split sequences to input into
     #### LSTM. We have already onehotencoded the data and have lagged it
     
-    def non_seq_split(X_continuous, X_categorical, Y, val_size= val_size, train_end = train_end):
+    def non_seq_split(X_continuous, X_categorical, Y, test_size= val_size, train_end = train_end):
         l = len(X_continuous)
         X_cont_train = X_continuous[:int(l * (train_end))]
         X_cont_test = X_continuous[(int(l * train_end)) : (int(l * train_end))]
@@ -381,7 +381,7 @@ def run_model(X_train_encoded, y_train_encoded, X_val_encoded, y_val_encoded, ep
     BiLSTM_3layers.add(Bidirectional(LSTM(32, return_sequences=True, activation='tanh', kernel_regularizer=l2(regularizer))))
     BiLSTM_3layers.add(Dropout(dropout))
     BiLSTM_3layers.add(Bidirectional(LSTM(10, return_sequences=True, activation='tanh', kernel_regularizer=l2(regularizer))))
-    BiLSTM_3layers.add(Dense(1))
+    BiLSTM_3layers.add(TimeDistributed(Dense(1)))
     BiLSTM_3layers.compile(optimizer='adam', loss='mse', metrics=["mean_absolute_error"])
     # Train model on CPU
     os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
@@ -391,6 +391,7 @@ def run_model(X_train_encoded, y_train_encoded, X_val_encoded, y_val_encoded, ep
 
     # Save model
     BiLSTM_3layers.save('Model_Outputs/model_BiLSTM_3layers_'+str(dt.datetime.now().date())+run_name+'.keras')
+    print("Saved model: ", 'Model_Outputs/model_BiLSTM_3layers_'+str(dt.datetime.now().date())+run_name+'.keras')
     return history, BiLSTM_3layers
 
 
@@ -415,7 +416,9 @@ def predict(X_test_encoded, y_test_encoded, BiLSTM_3layers, Yscaler):
 
     # Create DataFrame to compare actual vs predicted values
     pred_df = pd.DataFrame({'Actual': y_test_nonscale, 'Predicted': predictions})
-    pred_df.to_csv('Model_Outputs/predictions_BiLSTM_3layers_' + dt.datetime.now().strftime('%Y-%m-%d_%H-%M-%S') + '.csv')
+    pred_path = 'Model_Outputs/predictions_continuous_24hr_BiLSTM_3layers_' + dt.datetime.now().strftime('%Y-%m-%d_%H-%M-%S_') + '.csv'
+    pred_df.to_csv(pred_path)
+    print("Saved Prediction at: ", pred_path)
 
     # Plotting
     # plt.figure(figsize=(15, 7))
