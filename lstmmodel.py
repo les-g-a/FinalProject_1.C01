@@ -26,7 +26,7 @@ print(os.getcwd())
 
 import dill
 # load the DF from pickle to speed pre-processing
-def preprocess(chop, lookback, forecast, scaler, n_splits=3, val_size=0.2, test_size=0.1, name = None):
+def preprocess(chop, lookback, forecast, scaler, n_splits=3, train_start=0, train_end = .3, val_size=0.1, name = None):
     pkl_name = "merged_clean_nonzero"
     
     df = pd.read_pickle(f'Data_Clean/{pkl_name}.pkl')
@@ -79,9 +79,10 @@ def preprocess(chop, lookback, forecast, scaler, n_splits=3, val_size=0.2, test_
     #### We are splitting the data into test/train before we create the split sequences to input into
     #### LSTM. We have already onehotencoded the data and have lagged it
     
-    def non_seq_split(X_continuous, X_categorical, Y, test_size=0.2, val_size=0.1):
-        X_cont_train = X_continuous[:int(len(X_continuous) * (1 - test_size))]
-        X_cont_test = X_continuous[int(len(X_continuous) * (1 - test_size)):]
+    def non_seq_split(X_continuous, X_categorical, Y, val_size= val_size, train_end = train_end):
+        l = len(X_continuous)
+        X_cont_train = X_continuous[:int(l * (train_end))]
+        X_cont_test = X_continuous[(int(l * train_end)) : (int(l * train_end))]
         X_cat_train = X_categorical[:int(len(X_categorical) * (1 - test_size))]
         X_cat_test = X_categorical[int(len(X_categorical) * (1 - test_size)):]
         Y_train = Y[:int(len(Y) * (1 - test_size))]
